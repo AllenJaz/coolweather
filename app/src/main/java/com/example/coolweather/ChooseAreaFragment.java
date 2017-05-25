@@ -2,7 +2,9 @@ package com.example.coolweather;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +57,7 @@ public class ChooseAreaFragment extends Fragment {
     private City selectedCity;
     //选中的级别
     private int currentLevel;
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         View view = inflater.inflate(R.layout.choose_area,container,false);
         titleText =(TextView) view.findViewById(R.id.titel_text);
@@ -64,14 +67,19 @@ public class ChooseAreaFragment extends Fragment {
         listView.setAdapter(adapter);
         return view;
     }
-    public void onActivityCreater(Bundle savedInstanceState){
-        super.onActivityCreated(savedInstanceState);
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if (currentLevel == LEVEL_PROCINCE){
                     selectedProvince = provinceList.get(position);
                     queryCities();
+                }else if (currentLevel == LEVEL_CITY){
+                    selectedCity = cityList.get(position);
+                    queryCounties();
                 }
             }
         });
@@ -87,6 +95,33 @@ public class ChooseAreaFragment extends Fragment {
         });
         queryProvinces();
     }
+
+//    public void onActivityCreater(Bundle savedInstanceState){
+//        super.onActivityCreated(savedInstanceState);
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                if (currentLevel == LEVEL_PROCINCE){
+//                    selectedProvince = provinceList.get(position);
+//                    queryCities();
+//                }else if (currentLevel == LEVEL_CITY){
+//                    selectedCity = cityList.get(position);
+//                    queryCities();
+//                }
+//            }
+//        });
+//        backButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (currentLevel == LEVEL_COUNTY){
+//                    queryCities();
+//                }else if (currentLevel == LEVEL_CITY){
+//                    queryProvinces();
+//                }
+//            }
+//        });
+//        queryProvinces();
+//    }
     //查询全国所有的省份，优先从数据库中查询，如果没有查询到的话再去服务器查询
     private void queryProvinces(){
         titleText.setText("中国");
@@ -100,7 +135,9 @@ public class ChooseAreaFragment extends Fragment {
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             currentLevel = LEVEL_PROCINCE;
+            Log.d("xlh","queryProvinces");
         }else {
+            Log.d("xlh","else queryProvinces");
             String address ="http://guolin.tech/api/china";
             queryFromServer(address,"province");
         }
@@ -118,10 +155,12 @@ public class ChooseAreaFragment extends Fragment {
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             currentLevel = LEVEL_CITY;
+            Log.d("xlh","queryCities");
         }else {
             int provinceCode = selectedProvince.getProvinceCode();
             String address = "http://guolin.tech/api/china/"+provinceCode;
             queryFromServer(address,"city");
+            Log.d("xlh","else queryCities:"+address);
         }
     }
 
@@ -138,11 +177,13 @@ public class ChooseAreaFragment extends Fragment {
             adapter.notifyDataSetChanged();
             listView.setSelection(0);
             currentLevel = LEVEL_COUNTY;
+            Log.d("xlh","queryCounties");
         }else {
             int provinceCode =selectedProvince.getProvinceCode();
             int cityCode = selectedCity.getCityCode();
             String address ="http://guolin.tech/api/china/"+provinceCode+"/"+cityCode;
             queryFromServer(address,"county");
+            Log.d("xlh","else queryCounties");
         }
     }
 
